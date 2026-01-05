@@ -176,24 +176,12 @@ def main():
     print("Saved results to exports/tables/task4_all_experiments.csv")
     return
 
-def test():
-    all_results = []
-    for lr in [0.1]:
-        for md in [7, 9, 11]:
-            for n_estimator in [100, 200, 400, 500, 600, 700]:
-                all_results.append(
-                    run_gradient_boosting(X_train, X_test, y_train, y_test,
-                                        n_estimators=n_estimator, learning_rate=lr, max_depth=md)
-                )
-                print(f"Finished Gradient Boosting. HP: Learning rate {lr}, max_depth {md}, n_estimator {n_estimator}")
-    results_df = pd.DataFrame(all_results)
-    results_df.to_csv("exports/tables/task4_gradient_isolated.csv", sep=";", index=False)
 
 if __name__ == '__main__':
     os.makedirs("exports/tables", exist_ok=True)
     df = pd.read_csv("D.csv")
     X_train, X_test, y_train, y_test = split_data(df)
-    #main()
-    #test()
+    main()
+
     
     
