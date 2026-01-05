@@ -1,7 +1,7 @@
-from baseline_model import preprocess_with_clusters, split_data
-from data_analysis import read_csv_file
+from task3_baseline_model import preprocess_with_clusters, split_data
+from task2_data_analysis import read_csv_file
 from sklearn.metrics import classification_report, accuracy_score, f1_score
-from baseline_model import flatten_clf_report
+from task3_baseline_model import flatten_clf_report
 import pandas as pd
 import os
 from sklearn.neighbors import KNeighborsClassifier
