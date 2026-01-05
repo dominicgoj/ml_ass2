@@ -1,6 +1,6 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
-from data_analysis import read_csv_file
+from task2_data_analysis import read_csv_file
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, accuracy_score, f1_score
 import os

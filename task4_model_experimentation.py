@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from sklearn.metrics import classification_report, accuracy_score, f1_score
-from baseline_model import flatten_clf_report
+from task3_baseline_model import flatten_clf_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
