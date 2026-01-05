@@ -1,0 +1,1 @@
+First install the virtual environment requirements. Create a virtual environment by typing python3 -m venv .venv. Then activate it by typing source .venv/bin/activate. Install the requirements by typing pip install -r requirements.txt.
