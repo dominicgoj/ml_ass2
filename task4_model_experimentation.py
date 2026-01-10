@@ -9,6 +9,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 import os
 from sklearn.neighbors import KNeighborsClassifier
+import itertools
+from xgboost import XGBClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 def evaluate_model(model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
@@ -122,7 +126,45 @@ def run_gradient_boosting(X_train, X_test, y_train, y_test,
     })
     return results
 
-def main():
+def run_xgboost_multiclass(X_train, X_test, y_train, y_test,
+                           n_estimators=300,
+                           learning_rate=0.1,
+                           max_depth=3,
+                           subsample=0.8,
+                           colsample_bytree=0.8):
+
+    X_tr, X_te = preprocess_tree(X_train, X_test)
+
+    num_classes = len(set(y_train))
+
+    model = XGBClassifier(
+        objective="multi:softprob",
+        num_class=num_classes,
+        n_estimators=n_estimators,
+        learning_rate=learning_rate,
+        max_depth=max_depth,
+        subsample=subsample,
+        colsample_bytree=colsample_bytree,
+        eval_metric="mlogloss",
+        random_state=42,
+        n_jobs=-1
+    )
+
+    results = evaluate_model(model, X_tr, X_te, y_train, y_test)
+    results.update({
+        "model": "XGBoost",
+        "task": "multiclass",
+        "num_classes": num_classes,
+        "n_estimators": n_estimators,
+        "learning_rate": learning_rate,
+        "max_depth": max_depth,
+        "subsample": subsample,
+        "colsample_bytree": colsample_bytree
+    })
+
+    return results
+
+def run_different_algorithms():
     all_results = []
     # ===== Baseline kNN =====
     all_results.append(
@@ -177,11 +219,105 @@ def main():
     return
 
 
+def test_xgboost_hyperparameters(X_train, X_test, y_train, y_test):
+    results = []
+
+    param_grid = {
+        "n_estimators": [100, 200, 300, 400, 500, 600],
+        "learning_rate": [0.05, 0.1, 0.01],
+        "max_depth": [2, 3, 4, 5, 6, 7, 8],
+        "subsample": [0.8, 1.0, 0.6],
+        "colsample_bytree": [0.8, 1.0, 0.6]
+    }
+
+    keys = param_grid.keys()
+    values = param_grid.values()
+
+    combinations = list(itertools.product(*values))
+    total = len(combinations)
+
+    for i, combo in enumerate(combinations):
+        params = dict(zip(keys, combo))
+
+        result = run_xgboost_multiclass(
+            X_train, X_test, y_train, y_test,
+            n_estimators=params["n_estimators"],
+            learning_rate=params["learning_rate"],
+            max_depth=params["max_depth"],
+            subsample=params["subsample"],
+            colsample_bytree=params["colsample_bytree"]
+        )
+
+        results.append(result)
+
+        print(f"[{i+1:3d}/{total}] XGB params: {params}")
+
+    return results
+
+def decrease_feature_space(X_train, X_test, max_remove_features=4):
+    feature_names = list(X_train.columns)
+    results = []
+
+    for k in range(1, max_remove_features + 1):
+        for features_to_remove in itertools.combinations(feature_names, k):
+            
+            X_train_reduced = X_train.drop(columns=list(features_to_remove))
+            X_test_reduced  = X_test.drop(columns=list(features_to_remove)) 
+
+            results.append({
+                "removed_features": features_to_remove,
+                "X_train": X_train_reduced,
+                "X_test": X_test_reduced
+            })
+
+    return results
+
+def test_feature_space(X_train, X_test, y_train, y_test):
+    results = []
+    table_combinations = decrease_feature_space(X_train, X_test)
+    for i, table_comb in enumerate(table_combinations):
+        x_train = table_comb['X_train']
+        x_test = table_comb['X_test']
+        removed_features = table_comb['removed_features']
+        result = run_random_forest(x_train, x_test, y_train, y_test, n_estimators=400)
+        result["removed_features"] = ",".join(removed_features)
+        result["num_features"] = x_train.shape[1]
+
+        results.append(result)
+        print(f"Finished {i}/{len(table_combinations)}")
+    results_df = pd.DataFrame(results)
+    results_df.to_csv("exports/tables/task4_randomforest_feature_space.csv", sep=";", index=False)
+
+    print("Saved results to exports/tables/task4_randomforest_feature_space.csv")
+
+def plot_confusion_matrix_best_model(X_train, X_test, y_train, y_test):
+    X_tr, X_te = preprocess_tree(X_train, X_test)
+
+    model = RandomForestClassifier(
+        n_estimators=400,
+        random_state=42
+    )
+
+    model.fit(X_tr, y_train)
+    y_pred = model.predict(X_te)
+
+    cm = confusion_matrix(y_test, y_pred)
+
+    disp = ConfusionMatrixDisplay(
+        confusion_matrix=cm,
+        display_labels=[0, 1, 2, 3]
+    )
+
+    disp.plot(cmap="Blues")
+    plt.title("Confusion Matrix – Random Forest (Task 4 Best Model)")
+    plt.tight_layout()
+    plt.savefig("exports/cm.png", dpi=200)
+
 if __name__ == '__main__':
     os.makedirs("exports/tables", exist_ok=True)
     df = pd.read_csv("D.csv")
     X_train, X_test, y_train, y_test = split_data(df)
-    main()
+    plot_confusion_matrix_best_model(X_train, X_test, y_train, y_test)
 
     
     
