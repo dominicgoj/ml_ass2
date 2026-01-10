@@ -11,7 +11,7 @@ from task4_model_experimentation import split_data
 # Random Forest Training + Evaluation
 # =========================================================
 def run_random_forest(X_train, X_test, y_train, y_test,
-                      n_estimators=400):
+                      n_estimators=400, predict=True):
 
     model = RandomForestClassifier(
         n_estimators=n_estimators,
@@ -20,19 +20,22 @@ def run_random_forest(X_train, X_test, y_train, y_test,
     )
 
     model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    if predict:
+        y_pred = model.predict(X_test)
 
-    return {
-        "macro_f1": f1_score(y_test, y_pred, average="macro"),
-        "accuracy": accuracy_score(y_test, y_pred),
-        "model": model
-    }
+        return {
+            "macro_f1": f1_score(y_test, y_pred, average="macro"),
+            "accuracy": accuracy_score(y_test, y_pred),
+            "model": model
+        }
+    else:
+        return model
 
 
 # =========================================================
 # Outlier Detection NUR auf Trainingsdaten
 # =========================================================
-def filter_outliers_train_only(df_train: pd.DataFrame) -> pd.DataFrame:
+def get_outlier_mask(df_train: pd.DataFrame) -> pd.DataFrame:
     """
     Takes ONLY the training split and returns Din_train
     """
@@ -61,26 +64,28 @@ def filter_outliers_train_only(df_train: pd.DataFrame) -> pd.DataFrame:
     is_outlier_train = log_p_train <= tau
     print("Outlier-Anteil im TRAIN:", is_outlier_train.mean())
 
-    return is_outlier_train
+    return is_outlier_train, gmm, tau, scaler
 
-def main():
-
-    df = pd.read_csv("D.csv")
-    X_train, X_test, y_train, y_test = split_data(df)
-    df_train = pd.concat([X_train, y_train], axis=1)
-    
-    results_D = run_random_forest(
-        X_train, X_test, y_train, y_test
-    )
-    boolean_mask = filter_outliers_train_only(df_train.copy())
-
+def train_model_gmm_tau(df_train:pd.DataFrame, X_train, X_test, y_train, y_test):
+    boolean_mask, gmm, tau, scaler = get_outlier_mask(df_train.copy())
     X_train_in = X_train.loc[~boolean_mask]
     y_train_in = y_train.loc[~boolean_mask]
     results_in = run_random_forest(
         X_train_in, X_test, y_train_in, y_test
     )
+    return results_in, gmm, tau
 
-    print(len(y_train_in), len(y_train))
+def task5_main():
+
+    df = pd.read_csv("D.csv")
+    X_train, X_test, y_train, y_test = split_data(df)
+    df_train = pd.concat([X_train, y_train], axis=1)
+
+    results_D = run_random_forest(
+        X_train, X_test, y_train, y_test
+    )
+    
+    results_in, _, _, _ = train_model_gmm_tau(df_train, X_train, X_test, y_train, y_test)
 
     model = results_in['model']
 
@@ -94,4 +99,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    task5_main()
