@@ -13,17 +13,26 @@ def split_data(df, id_col='id', label_col='label'):
         df[feature_cols], df[label_col],
         test_size=0.2, random_state=42, stratify=df[label_col]
     )
-    return X_train, X_test, y_train, y_test
+    X_train, X_val, y_train, y_val = train_test_split(
+    X_train, y_train,
+    test_size=0.25,
+    stratify=y_train,
+    random_state=42
+    )
+    return X_train, X_val, X_test, y_train, y_val, y_test
 
-def preprocess_standard_scaling(df, id_col='id', label_col='label', n_clusters=3)->(pd.DataFrame):
+def preprocess_standard_scaling(df)->(pd.DataFrame):
 
-    X_train, X_test, y_train, y_test = split_data(df)
+    X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
+
+    
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
+    X_val_scaled = scaler.transform(X_val)
     X_test_scaled  = scaler.transform(X_test)
 
-    return X_train_scaled, X_test_scaled, y_train, y_test
+    return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test
 
 def flatten_clf_report(report_dict):
     """
@@ -45,7 +54,7 @@ def flatten_clf_report(report_dict):
 
 
 
-def evaluate_knn(X_train, X_test, y_train, y_test)->(float|float|dict):
+def evaluate_knn(X_train, X_val, X_test, y_train, y_val, y_test):
     os.makedirs("exports/tables", exist_ok=True)
     best_k = None
     best_macro_f1 = -1
@@ -57,9 +66,9 @@ def evaluate_knn(X_train, X_test, y_train, y_test)->(float|float|dict):
         model = KNeighborsClassifier(n_neighbors=k)
         model.fit(X_train, y_train)
 
-        y_pred = model.predict(X_test)
+        y_pred = model.predict(X_val)
 
-        macro = f1_score(y_test, y_pred, average="macro")
+        macro = f1_score(y_val, y_pred, average="macro")
 
         results[k] = macro
         if macro > best_macro_f1:
@@ -68,14 +77,14 @@ def evaluate_knn(X_train, X_test, y_train, y_test)->(float|float|dict):
         print("=" * 50)
         print(f"K: {k}")
         print("Classification Report:")
-        print(classification_report(y_test, y_pred, digits=3))
-        print("Accuracy:", accuracy_score(y_test, y_pred))
-        print("Macro F1:", f1_score(y_test, y_pred, average="macro"))
+        print(classification_report(y_val, y_pred, digits=3))
+        print("Accuracy:", accuracy_score(y_val, y_pred))
+        print("Macro F1:", f1_score(y_val, y_pred, average="macro"))
 
-        out_dict = classification_report(y_test, y_pred, digits=3, output_dict=True)
+        out_dict = classification_report(y_val, y_pred, digits=3, output_dict=True)
         flat = flatten_clf_report(out_dict)
         flat['k'] = k
-        flat['accuracy'] = accuracy_score(y_test, y_pred)
+        flat['accuracy'] = accuracy_score(y_val, y_pred)
         flat['macro_f1'] = macro
         table_results.append(flat)
 
@@ -96,6 +105,10 @@ def evaluate_knn(X_train, X_test, y_train, y_test)->(float|float|dict):
 
 if __name__ == '__main__':
     df = read_csv_file("D.csv")
-    X_train_scaled, X_test_scaled, y_train, y_test = preprocess_standard_scaling(df=df)
-    _, _, table_results = evaluate_knn(X_train=X_train_scaled, X_test=X_test_scaled, y_train=y_train, y_test=y_test)
+    X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test = \
+    preprocess_standard_scaling(df)
+    _, _, table_results = evaluate_knn(
+        X_train_scaled, X_val_scaled, X_test_scaled,
+        y_train, y_val, y_test
+    )
     

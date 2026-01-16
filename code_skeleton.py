@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
-from task6_leaderboard import train_model
+from task6_leaderboard import leaderboard_task6
 
 def predict(X_test):
     # TODO replace this with your model's predictions
     # For now, we will just return random predictions
-    model, gmm, tau, scaler = train_model()
-    X_test = X_test.drop(columns=['id'])
+    model, gmm, tau, scaler = leaderboard_task6()
+    X_test = X_test.drop(columns=['id', 'feature_3', 'feature_7', 'feature_8'])
     X_leaderboard_scaled = scaler.transform(X_test)
     log_p = gmm.score_samples(X_leaderboard_scaled)
     outliers = (log_p <= tau).astype(int)
