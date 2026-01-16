@@ -147,11 +147,14 @@ def plot_kmeans_pca(df, id_col='id', label_col='label',
 
     print(f"k-means PCA plot saved to: {out_path}")
 
-
-if __name__ == '__main__':
+def task2():
+    print(30*"*", "TASK2", 30*"*")
     df = read_csv_file('D.csv')
     plot_class_distribution(df)
     plot_feature_distributions(df)
     plot_feature_correlation(df)
     plot_pca_by_label(df)
     plot_kmeans_pca(df)
+
+if __name__ == '__main__':
+    task2()

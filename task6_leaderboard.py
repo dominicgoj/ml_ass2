@@ -3,7 +3,8 @@ from task4_model_experimentation import split_data
 from sklearn.metrics import classification_report, accuracy_score, f1_score
 import pandas as pd
 
-def leaderboard_task6():
+def task6():
+    print(30*"*", "TASK6", 30*"*")
     df = pd.read_csv("D.csv")
     X_train, y_train = df.drop(columns=['label', 'id']), df['label']
     [X_tr_red], feature_names = reduce_matrix_dimensions(features_to_remove=('feature_3',
@@ -22,7 +23,7 @@ def leaderboard_task6():
     model = train_model(
         X_train_in, y_train_in
     )
-    return model, gmm, tau, scaler
+    return model, gmm, tau, scaler, feature_names
 
 if __name__ == '__main__':
-    leaderboard_task6()
+    task6()

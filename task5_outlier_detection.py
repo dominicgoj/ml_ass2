@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler
@@ -22,7 +23,6 @@ def train_model(X_train, y_train, n_estimators=400):
 
 def train_and_eval_on_val(X_train, X_val, y_train, y_val,
                       n_estimators=400, predict=True):
-
     model = train_model(X_train, y_train, n_estimators)
     if predict:
         y_pred = model.predict(X_val)
@@ -36,9 +36,43 @@ def train_and_eval_on_val(X_train, X_val, y_train, y_val,
         return model
 
 
-# =========================================================
-# Outlier Detection NUR auf Trainingsdaten
-# =========================================================
+
+def plot_gmm_loglikelihood_histogram(log_p_train, log_p_out, tau, save_path="exports/gmm_histogram.png"):
+    plt.figure(figsize=(8, 5))
+
+    plt.hist(
+        log_p_train,
+        bins=50,
+        alpha=0.6,
+        label="Training data (D)",
+        density=True
+    )
+
+    plt.hist(
+        log_p_out,
+        bins=50,
+        alpha=0.6,
+        label="Outlier data (D_out)",
+        density=True
+    )
+
+    plt.axvline(
+        tau,
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label=r"Threshold $\tau$"
+    )
+
+    plt.xlabel("Log-likelihood under GMM")
+    plt.ylabel("Density")
+    plt.title("GMM Log-likelihood Distribution and Outlier Threshold")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200)
+    plt.close()
+
+
 def get_outlier_mask(df_train: pd.DataFrame) -> pd.DataFrame:
     """
     Takes ONLY the training split and returns Din_train
@@ -66,8 +100,12 @@ def get_outlier_mask(df_train: pd.DataFrame) -> pd.DataFrame:
 
     tau = np.percentile(log_p_out, 80)
 
+    plot_gmm_loglikelihood_histogram(log_p_train=log_p_train,
+                                     log_p_out=log_p_out,
+                                     tau=tau)
+
     is_outlier_train = log_p_train <= tau
-    print("Outlier-Anteil im TRAIN:", is_outlier_train.mean())
+    print("Outlier distribution:", is_outlier_train.mean())
 
     return is_outlier_train, gmm, tau, scaler
 
@@ -75,14 +113,14 @@ def train_model_gmm_tau(df_train:pd.DataFrame, X_train, X_val, y_train, y_val):
     boolean_mask, gmm, tau, scaler = get_outlier_mask(df_train.copy())
     X_train_in = X_train.loc[~boolean_mask]
     y_train_in = y_train.loc[~boolean_mask]
-    
+    print(f"Tau: {tau}")
     results_in = train_and_eval_on_val(
         X_train_in, X_val, y_train_in, y_val
     )
     return results_in, gmm, tau
 
-def task5_main():
-
+def task5():
+    print(30*"*", "TASK5", 30*"*")
     df = pd.read_csv("D.csv")
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
     ### reduce X in feature dimensions
@@ -100,6 +138,11 @@ def task5_main():
         columns=feature_names,
         index=X_val.index
     )
+    X_test_red_df = pd.DataFrame(
+        X_test_red,
+        columns=feature_names,
+        index=X_test.index
+    )
     df_train = pd.concat([X_tr_red_df, y_train], axis=1)
 
     results_D, _, _ = train_best_random_forest_reduced_features(X_train=X_tr_red,
@@ -112,7 +155,7 @@ def task5_main():
 
     model = results_D_in['model']
 
-    y_pred = model.predict(X_test_red)
+    y_pred = model.predict(X_test_red_df)
     macro_f1_d_in_model = f1_score(y_test, y_pred, average="macro")
 
     print("\n=== FINAL RESULTS ===")
@@ -122,4 +165,4 @@ def task5_main():
 
 
 if __name__ == "__main__":
-    task5_main()
+    task5()

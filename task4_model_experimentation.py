@@ -366,18 +366,19 @@ def plot_confusion_matrix(
     plt.show()
 
 
-if __name__ == '__main__':
+def task4():
+    print(30*"*", "TASK4", 30*"*")
     os.makedirs("exports/tables", exist_ok=True)
     df = pd.read_csv("D.csv")
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
-    """results = run_different_algorithms(X_train=X_train,
+    results = run_different_algorithms(X_train=X_train,
                              X_val=X_val,
                              y_train=y_train,
-                             y_val=y_val)"""
-    """test_feature_space(X_train=X_train,
+                             y_val=y_val)
+    test_feature_space(X_train=X_train,
                        X_val=X_val,
                        y_train=y_train,
-                       y_val=y_val)"""
+                       y_val=y_val)
     results, best_model, feature_names = train_best_random_forest_reduced_features(
         X_train,
         X_val,
@@ -385,14 +386,18 @@ if __name__ == '__main__':
         y_val,
         features_to_remove=("feature_3", "feature_7", "feature_8")
     )
-    """
+    
     plot_confusion_matrix(
     model=best_model,
     X_test=X_test,
     y_test=y_test,
     feature_names=feature_names,
     title="Confusion Matrix – Random Forest* (Reduced Feature Space)"
-    )"""
+    )
+
+
+if __name__ == '__main__':
+    task4()
     
 
 

@@ -103,7 +103,8 @@ def evaluate_knn(X_train, X_val, X_test, y_train, y_val, y_test):
 
     return best_k, y_pred, table_results
 
-if __name__ == '__main__':
+def task3():
+    print(30*"*", "TASK3", 30*"*")
     df = read_csv_file("D.csv")
     X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test = \
     preprocess_standard_scaling(df)
@@ -111,4 +112,7 @@ if __name__ == '__main__':
         X_train_scaled, X_val_scaled, X_test_scaled,
         y_train, y_val, y_test
     )
+
+if __name__ == '__main__':
+    task3()
     
