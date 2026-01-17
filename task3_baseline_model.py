@@ -5,6 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, accuracy_score, f1_score
 import os
 from sklearn.preprocessing import StandardScaler
+import numpy as np
 
 def split_data(df, id_col='id', label_col='label'):
     feature_cols = [c for c in df.columns if c not in [id_col, label_col]]
@@ -13,20 +14,18 @@ def split_data(df, id_col='id', label_col='label'):
         df[feature_cols], df[label_col],
         test_size=0.2, random_state=42, stratify=df[label_col]
     )
+
     X_train, X_val, y_train, y_val = train_test_split(
     X_train, y_train,
     test_size=0.25,
     stratify=y_train,
     random_state=42
     )
+
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 def preprocess_standard_scaling(df)->(pd.DataFrame):
-
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
-
-    
-
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_val_scaled = scaler.transform(X_val)
@@ -108,7 +107,8 @@ def task3():
     df = read_csv_file("D.csv")
     X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test = \
     preprocess_standard_scaling(df)
-    _, _, table_results = evaluate_knn(
+
+    evaluate_knn(
         X_train_scaled, X_val_scaled, X_test_scaled,
         y_train, y_val, y_test
     )

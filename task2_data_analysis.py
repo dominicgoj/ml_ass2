@@ -30,6 +30,7 @@ def plot_class_distribution(df, label_col='label', out_path='class_distribution.
     plt.close(fig)
     print(f"Saved class distribution to: {out_path}")
 
+
 def plot_feature_distributions(df, id_col='id', label_col='label', out_path='feature_distributions.png'):
     os.makedirs(EXPORT_FOLDER, exist_ok=True)
     features = [c for c in df.columns if c not in (id_col, label_col)]
@@ -80,6 +81,7 @@ def plot_feature_correlation(df, id_col='id', label_col='label',
     plt.close(fig)
     print(f"Feature correlation matrix saved to: {out_path}")
 
+
 def plot_pca_by_label(df, id_col='id', label_col='label',
                       out_path='pca_by_label.png'):
     os.makedirs(EXPORT_FOLDER, exist_ok=True)
@@ -106,6 +108,7 @@ def plot_pca_by_label(df, id_col='id', label_col='label',
     fig.savefig(os.path.join(EXPORT_FOLDER, out_path), dpi=150)
     plt.close(fig)
     print(f"PCA plot saved to: {out_path}")
+
 
 def plot_kmeans_pca(df, id_col='id', label_col='label',
                     out_path='kmeans_pca.png'):
@@ -146,6 +149,7 @@ def plot_kmeans_pca(df, id_col='id', label_col='label',
     plt.close(fig)
 
     print(f"k-means PCA plot saved to: {out_path}")
+
 
 def task2():
     print(30*"*", "TASK2", 30*"*")

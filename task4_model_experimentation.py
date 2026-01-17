@@ -163,14 +163,14 @@ def run_xgboost_multiclass(X_train, X_val, y_train, y_val,
 
     return results
 
-def run_different_algorithms(X_train, X_val, y_train, y_val):
+def run_all_algorithms(X_train, X_val, y_train, y_val):
     all_results = []
 
     # ================= kNN Baseline =================
     all_results.append(
-        run_knn_baseline(X_train, X_val, y_train, y_val, k=15)
+        run_knn_baseline(X_train, X_val, y_train, y_val, k=5)
     )
-    print("Finished baseline kNN (k=15)")
+    print("Finished baseline kNN (k=5)")
 
     # ================= Logistic Regression =================
     lr_grid = {
@@ -371,14 +371,18 @@ def task4():
     os.makedirs("exports/tables", exist_ok=True)
     df = pd.read_csv("D.csv")
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
-    results = run_different_algorithms(X_train=X_train,
+
+    results = run_all_algorithms(X_train=X_train,
                              X_val=X_val,
                              y_train=y_train,
                              y_val=y_val)
+    
+
     test_feature_space(X_train=X_train,
                        X_val=X_val,
                        y_train=y_train,
                        y_val=y_val)
+    
     results, best_model, feature_names = train_best_random_forest_reduced_features(
         X_train,
         X_val,
